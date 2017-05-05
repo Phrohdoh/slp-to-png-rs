@@ -71,10 +71,10 @@ fn main() {
         let mut writer = {
             let mut encoder = png::Encoder::new(w, shape.header.width, shape.header.height);
             encoder.set(png::ColorType::Indexed).set(png::BitDepth::Eight);
-            encoder.write_header().expect(&format!("Failed to write header for '{}'", output_path));
+            encoder.write_header().expect(&format!("Failed to write header for '{}'", output_path.display()))
         };
 
-        writer.write_chunk(png::chunk::PLTE, &pal).expect(&format!("Failed to write pal to '{}'", output_path));
-        writer.write_image_data(&shape.pixels).expect(&format!("Failed to write image data to '{}'", output_path));
+        writer.write_chunk(png::chunk::PLTE, &pal).expect(&format!("Failed to write pal to '{}'", output_path.display()));
+        writer.write_image_data(&shape.pixels).expect(&format!("Failed to write image data to '{}'", output_path.display()));
     }
 }
