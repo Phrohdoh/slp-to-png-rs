@@ -36,12 +36,24 @@ fn main() {
             .takes_value(true))
         .get_matches();
 
-    let slp_path = matches.value_of("slp-path").unwrap();
-    let slp = chariot_slp::SlpFile::read_from_file(slp_path, 1).expect(&format!("Failed to read SLP from {}", slp_path));
+    let slp = {
+        let slp_path = matches.value_of("slp-path").unwrap();
+        chariot_slp::SlpFile::read_from_file(slp_path, 1).expect(&format!("Failed to read SLP from {}", slp_path))
+    };
 
-    let pal_path = matches.value_of("pal-path").unwrap();
-    // FIXME: Convert `pal` from Vec<PaletteColor> to [u8]
-    let pal = chariot_palette::read_from_file(pal_path).expect(&format!("Failed to read palette from {}", pal_path));
+    let pal = {
+        let pal_path = matches.value_of("pal-path").unwrap();
+        let colors = chariot_palette::read_from_file(pal_path).expect(&format!("Failed to read palette from {}", pal_path));
+        let mut rgb = vec![0u8; colors.len() * 3];
+
+        for (index, color) in colors.iter().enumerate() {
+            rgb[index * 3] = color.r;
+            rgb[index * 3 + 1] = color.g;
+            rgb[index * 3 + 2] = color.b;
+        }
+
+        rgb
+    };
 
     let output_path = PathBuf::from(matches.value_of("output-path").unwrap());
 
@@ -56,19 +68,13 @@ fn main() {
 
         let ref mut w = BufWriter::new(f);
 
-        // TODO: Convert slp to pal indices and deal with skips
-        let data = vec![
-            0,1,
-            2,3
-        ];
-
         let mut writer = {
             let mut encoder = png::Encoder::new(w, shape.header.width, shape.header.height);
             encoder.set(png::ColorType::Indexed).set(png::BitDepth::Eight);
-            encoder.write_header().expect("Failed to write header for 'test.png'")
+            encoder.write_header().expect(&format!("Failed to write header for '{}'", output_path));
         };
 
-        writer.write_chunk(png::chunk::PLTE, &pal).expect("Failed to write pal to 'test.png'");
-        writer.write_image_data(&data).expect("Failed to write image data to 'test.png'");
+        writer.write_chunk(png::chunk::PLTE, &pal).expect(&format!("Failed to write pal to '{}'", output_path));
+        writer.write_image_data(&shape.pixels).expect(&format!("Failed to write image data to '{}'", output_path));
     }
 }
