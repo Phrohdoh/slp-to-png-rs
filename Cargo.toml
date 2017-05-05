@@ -1,0 +1,8 @@
+[package]
+name = "slp-to-png"
+version = "0.1.0"
+authors = ["Taryn Hill <taryn@phrohdoh.com>"]
+
+[dependencies]
+chariot_slp = "0.1"
+png = "0.7"
