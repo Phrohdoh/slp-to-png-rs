@@ -110,9 +110,8 @@ fn main() {
             .open(&output_path)
             .expect(&format!("Failed to prepare '{}'", output_path.display()));
 
-        let w = BufWriter::new(f);
-
         let mut writer = {
+            let w = BufWriter::new(f);
             let mut encoder = png::Encoder::new(w, shape.header.width, shape.header.height);
             encoder.set(png::ColorType::Indexed).set(png::BitDepth::Eight);
             encoder.write_header().expect(&format!("Failed to write header for '{}'", output_path.display()))
