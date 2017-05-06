@@ -2,6 +2,7 @@ use std::fs::OpenOptions;
 use std::io::BufWriter;
 use std::path::PathBuf;
 
+#[macro_use(value_t)]
 extern crate clap;
 use clap::{App, Arg};
 
@@ -81,17 +82,27 @@ fn main() {
     let output_path = PathBuf::from(matches.value_of("output-path").unwrap());
     std::fs::create_dir_all(&output_path).expect(&format!("Failed to create output-path {}", output_path.display()));
 
-    let single_frame_idx = matches.value_of("single-frame");
+    let single_frame_idx = {
+        if matches.is_present("single-frame") {
+            let v = value_t!(matches, "single-frame", usize).unwrap();
+            if v > slp.shapes.len() - 1 {
+                Some(slp.shapes.len() - 1)
+            } else {
+                Some(v)
+            }
+        } else {
+            None
+        }
+    };
 
     for (idx, shape) in slp.shapes.iter().enumerate() {
-        // TODO: This code is bad and I feel bad for writing it... fix it.
-        if let Some(index) = single_frame_idx.map(|s| s.parse::<u8>().unwrap_or(idx as u8)) {
-            if idx as u8 != index {
+        if let Some(index) = single_frame_idx {
+            if idx != index {
                 continue;
             }
         }
 
-        let output_name = format!("output{}.png", idx+1);
+        let output_name = format!("output{}.png", idx);
         let output_path = output_path.join(output_name);
         let f = OpenOptions::new()
             .write(true)
