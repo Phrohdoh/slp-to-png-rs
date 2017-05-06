@@ -40,6 +40,10 @@ fn main() {
             .help("A directory to write the PNGs to")
             .required(true)
             .takes_value(true))
+        .arg(Arg::with_name("single-frame")
+            .long("single-frame")
+            .help("The frame index to extract (this is optional; if you do not provide this all frames will be extracted")
+            .takes_value(true))
         .get_matches();
 
     let slp = {
@@ -77,7 +81,16 @@ fn main() {
     let output_path = PathBuf::from(matches.value_of("output-path").unwrap());
     std::fs::create_dir_all(&output_path).expect(&format!("Failed to create output-path {}", output_path.display()));
 
+    let single_frame_idx = matches.value_of("single-frame");
+
     for (idx, shape) in slp.shapes.iter().enumerate() {
+        // TODO: This code is bad and I feel bad for writing it... fix it.
+        if let Some(index) = single_frame_idx.map(|s| s.parse::<u8>().unwrap_or(idx as u8)) {
+            if idx as u8 != index {
+                continue;
+            }
+        }
+
         let output_name = format!("output{}.png", idx+1);
         let output_path = output_path.join(output_name);
         let f = OpenOptions::new()
