@@ -28,6 +28,12 @@ fn main() {
             .help("Filepath to the palette (bin) to use")
             .required(true)
             .takes_value(true))
+        .arg(Arg::with_name("player")
+            .long("player")
+            .value_name("a value ranging from 1 to 8")
+            .help("Player remap index (1..8)")
+            .required(true)
+            .takes_value(true))
         .arg(Arg::with_name("output-path")
             .short("o")
             .long("output-path")
@@ -38,7 +44,20 @@ fn main() {
 
     let slp = {
         let slp_path = matches.value_of("slp-path").unwrap();
-        chariot_slp::SlpFile::read_from_file(slp_path, 1).expect(&format!("Failed to read SLP from {}", slp_path))
+        let player_idx = {
+            let v = matches.value_of("player").unwrap();
+            let v = v.parse::<u8>().expect(&format!("Failed to parse {} into an integer value ranging from 1 to 8", v));
+
+            if v > 8 {
+                8
+            } else if v == 0 {
+                1
+            } else {
+                v
+            }
+        };
+
+        chariot_slp::SlpFile::read_from_file(slp_path, player_idx).expect(&format!("Failed to read SLP from {}", slp_path))
     };
 
     let pal = {
@@ -56,6 +75,7 @@ fn main() {
     };
 
     let output_path = PathBuf::from(matches.value_of("output-path").unwrap());
+    std::fs::create_dir_all(&output_path).expect(&format!("Failed to create output-path {}", output_path.display()));
 
     for (idx, shape) in slp.shapes.iter().enumerate() {
         let output_name = format!("output{}.png", idx+1);
