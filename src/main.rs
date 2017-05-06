@@ -110,7 +110,7 @@ fn main() {
             .open(&output_path)
             .expect(&format!("Failed to prepare '{}'", output_path.display()));
 
-        let ref mut w = BufWriter::new(f);
+        let w = BufWriter::new(f);
 
         let mut writer = {
             let mut encoder = png::Encoder::new(w, shape.header.width, shape.header.height);
